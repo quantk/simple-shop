@@ -1,6 +1,7 @@
 language: php
 php:
 - '7.4.0'
+- '7.4.2'
 before_install:
 - travis_retry composer self-update
 - cp .env.example .env

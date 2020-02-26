@@ -1,0 +1,49 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Console\Command\InfoCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\CreateCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\UpdateCommand;
+use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
+use FMW\Application;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Helper\QuestionHelper;
+
+/** @var Application $app */
+$app                = require __DIR__ . '/../framework/bootstrap.php';
+$consoleApplication = new \Symfony\Component\Console\Application();
+
+/** @var array $commandClasses */
+/** @noinspection UsingInclusionOnceReturnValueInspection */
+$commandClasses = require_once __DIR__ . '/../config/commands.php';
+foreach ($commandClasses as $commandClass) {
+    $consoleApplication->add($app->resolveDependency($commandClass));
+}
+$entityManager = $app->resolveDependency(EntityManagerInterface::class);
+
+$consoleApplication->setHelperSet(
+    new HelperSet(
+        [
+            'db'       => new ConnectionHelper($entityManager->getConnection()),
+            'em'       => new EntityManagerHelper($entityManager),
+            'question' => new QuestionHelper()
+        ]
+    )
+);
+
+$consoleApplication->add(new InfoCommand());
+$consoleApplication->add(new CreateCommand());
+$consoleApplication->add(new UpdateCommand());
+$consoleApplication->add(new DropCommand());
+$consoleApplication->add(new DiffCommand());
+$consoleApplication->add(new MigrateCommand());
+$consoleApplication->add(new GenerateCommand());
+
+$consoleApplication->run();

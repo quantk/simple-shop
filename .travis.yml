@@ -1,0 +1,13 @@
+language: php
+php:
+- '7.4.0'
+before_install:
+- travis_retry composer self-update
+- cp .env.example .env
+install:
+- composer install --no-interaction --prefer-source
+before_script:
+- php bin/console migrations:migrate --no-interaction
+script:
+- php vendor/bin/phpunit
+- php vendor/bin/psalm
